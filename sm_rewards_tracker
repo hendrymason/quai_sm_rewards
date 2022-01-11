@@ -48,21 +48,3 @@ for user in sm_rewards:
 
 print("Total Tweets: " + str(tweet_count))
 print("Total Users: " + str(count))
-
-#handle authentication
-# api_key = "jzW10D2Z2sIMBolpvuqRBVNxH"
-# api_secret_key = "ihDUekm4zpEEFsMFo2c34u594AZV14MhKgNBAXBkRIjIvpJKFx"
-# access_token = "2670032257-imtKVNTyO6dPsgFpCZ5Q9jK77GR5NTn6rUlTEZN"
-# secret_access_token = "GiFRKG1Tpm1cftWjC9EZhn90krowI8AXyXTFY1YjXT1bd"
-
-# auth = tweepy.OAuthHandler("jzW10D2Z2sIMBolpvuqRBVNxH", "ihDUekm4zpEEFsMFo2c34u594AZV14MhKgNBAXBkRIjIvpJKFx")
-# auth.set_access_token("2670032257-imtKVNTyO6dPsgFpCZ5Q9jK77GR5NTn6rUlTEZN", "GiFRKG1Tpm1cftWjC9EZhn90krowI8AXyXTFY1YjXT1bd")
-
-
-# api = tweepy.API(auth)
-
-# try:
-#     api.verify_credentials()
-#     print("everything works")
-# except:
-#     print("something went wrong")
