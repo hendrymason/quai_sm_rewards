@@ -1,17 +1,3 @@
-#creating a social media user compiler for quai's twitter & social media rewards tracker
-
-#### Put it in a Python Jupyter notebook
-# 1. Maintain a dictionary of { "name": [retweets, likes, replies], "name2": [retweets, likes, replies]}
-## Sort through all tweets (initially) and create a dictionary containing mainnet rewards criteria for each person starting at 0
-
-# 2. Pull @QuaiNetwork tweets, check replies, retweets, and likes. Add in the + for each index. ex. @Cole retweets {"cole": [n+1, n, n]}
-## After creating a name for each person, sort through where their name is found and increment++ that index in their array
-
-# 3. Search tweets containing @QuaiNetwork then do the same process
-## follow same process except for mentions of quainetwork
-
-### * consider saving the last tweet ID so as to keep a reference for when to begin the next social media rewards aggregation
-
 import tweepy
 
 # use this client for read only processes, authentication was not working but appears unnecessary
@@ -22,31 +8,46 @@ sm_rewards = {}
 
 # search recent tweets from quainetwork, minus retweets
 query = 'from:quainetwork -is:retweet'
-tweets = client.search_recent_tweets(query=query, tweet_fields=['context_annotations', 'created_at'], max_results=100)
+tweets = client.search_recent_tweets(query=query, max_results=100)
+tweet_count = 0
 
 #iterate through tweet objects to collect retweeters, likers, and replies and assign user's their respective rewards
 for tweet in tweets.data:
+    tweet_count += 1
     retweeters = client.get_retweeters(tweet.id)
     likers = client.get_liking_users(tweet.id)
-    print('tweet text: ' + tweet.text)
-    print('----------------------')
+    # print('----------------------')
+    # print('tweet text: ' + tweet.text)
     for liker in likers.data:
         if liker.username in sm_rewards:
             sm_rewards[liker.username][0] = sm_rewards[liker.username][0] + 1
         else:
-            sm_rewards[liker.username] = [0, 0, 0]
-        print('liker name: ' + liker.username)
-        print('Total Likes: ' + str(sm_rewards[liker.username][0]))
-        print('Total Retweets: ' + str(sm_rewards[liker.username][1]))
-    print('-----------------')
+            sm_rewards[liker.username] = [1, 0, 0]
+            #print('Added ' + liker.username)
+        # print('Liker name: ' + liker.username)
+        # print('Total Likes: ' + str(sm_rewards[liker.username][0]))
+        # print('Total Retweets: ' + str(sm_rewards[liker.username][1]))
+        # print("-- + --")
     for retweeter in retweeters.data:
         if retweeter.username in sm_rewards:
             sm_rewards[retweeter.username][1] = sm_rewards[retweeter.username][1] + 1
         else:
-            sm_rewards[retweeter.username] = [0, 0, 0]
-        print('retweeter name: ' + retweeter.username)
-        print('Total Likes: ' + str(sm_rewards[retweeter.username][0]))
-        print('Total Retweets: ' + str(sm_rewards[retweeter.username][1]))
+            sm_rewards[retweeter.username] = [0, 1, 0]
+            #print('Added ' + retweeter.username)
+        # print('Retweeter name: ' + retweeter.username)
+        # print('Total Likes: ' + str(sm_rewards[retweeter.username][0]))
+        # print('Total Retweets: ' + str(sm_rewards[retweeter.username][1]))
+        # print("-- + --")
+count = 0
+for user in sm_rewards:
+    count += 1
+    total_rewards = sm_rewards[user][0] + sm_rewards[user][1] + sm_rewards[user][2]
+    print(user + "'s Total Likes: " + str(sm_rewards[user][0]))
+    print(user + "'s Total Retweets: " + str(sm_rewards[user][1]))
+    print(user + "'s Total Rewards: " + str(total_rewards))
+
+print("Total Tweets: " + str(tweet_count))
+print("Total Users: " + str(count))
 
 #handle authentication
 # api_key = "jzW10D2Z2sIMBolpvuqRBVNxH"
