@@ -1,0 +1,67 @@
+#creating a social media user compiler for quai's twitter & social media rewards tracker
+
+#### Put it in a Python Jupyter notebook
+# 1. Maintain a dictionary of { "name": [retweets, likes, replies], "name2": [retweets, likes, replies]}
+## Sort through all tweets (initially) and create a dictionary containing mainnet rewards criteria for each person starting at 0
+
+# 2. Pull @QuaiNetwork tweets, check replies, retweets, and likes. Add in the + for each index. ex. @Cole retweets {"cole": [n+1, n, n]}
+## After creating a name for each person, sort through where their name is found and increment++ that index in their array
+
+# 3. Search tweets containing @QuaiNetwork then do the same process
+## follow same process except for mentions of quainetwork
+
+### * consider saving the last tweet ID so as to keep a reference for when to begin the next social media rewards aggregation
+
+import tweepy
+
+# use this client for read only processes, authentication was not working but appears unnecessary
+client = tweepy.Client(bearer_token= "AAAAAAAAAAAAAAAAAAAAAEHkXwEAAAAAFgCxzDEOf484cKicUHiV3DO6qcU%3DodAKdbVDHoucR6dlOzPbB719XrDMisbZAWLufgqORgLCLgKUtO")
+
+# dict to track everything -> {username: [likes, retweets, replies], ...}
+sm_rewards = {}
+
+# search recent tweets from quainetwork, minus retweets
+query = 'from:quainetwork -is:retweet'
+tweets = client.search_recent_tweets(query=query, tweet_fields=['context_annotations', 'created_at'], max_results=100)
+
+#iterate through tweet objects to collect retweeters, likers, and replies and assign user's their respective rewards
+for tweet in tweets.data:
+    retweeters = client.get_retweeters(tweet.id)
+    likers = client.get_liking_users(tweet.id)
+    print('tweet text: ' + tweet.text)
+    print('----------------------')
+    for liker in likers.data:
+        if liker.username in sm_rewards:
+            sm_rewards[liker.username][0] = sm_rewards[liker.username][0] + 1
+        else:
+            sm_rewards[liker.username] = [0, 0, 0]
+        print('liker name: ' + liker.username)
+        print('Total Likes: ' + str(sm_rewards[liker.username][0]))
+        print('Total Retweets: ' + str(sm_rewards[liker.username][1]))
+    print('-----------------')
+    for retweeter in retweeters.data:
+        if retweeter.username in sm_rewards:
+            sm_rewards[retweeter.username][1] = sm_rewards[retweeter.username][1] + 1
+        else:
+            sm_rewards[retweeter.username] = [0, 0, 0]
+        print('retweeter name: ' + retweeter.username)
+        print('Total Likes: ' + str(sm_rewards[retweeter.username][0]))
+        print('Total Retweets: ' + str(sm_rewards[retweeter.username][1]))
+
+#handle authentication
+# api_key = "jzW10D2Z2sIMBolpvuqRBVNxH"
+# api_secret_key = "ihDUekm4zpEEFsMFo2c34u594AZV14MhKgNBAXBkRIjIvpJKFx"
+# access_token = "2670032257-imtKVNTyO6dPsgFpCZ5Q9jK77GR5NTn6rUlTEZN"
+# secret_access_token = "GiFRKG1Tpm1cftWjC9EZhn90krowI8AXyXTFY1YjXT1bd"
+
+# auth = tweepy.OAuthHandler("jzW10D2Z2sIMBolpvuqRBVNxH", "ihDUekm4zpEEFsMFo2c34u594AZV14MhKgNBAXBkRIjIvpJKFx")
+# auth.set_access_token("2670032257-imtKVNTyO6dPsgFpCZ5Q9jK77GR5NTn6rUlTEZN", "GiFRKG1Tpm1cftWjC9EZhn90krowI8AXyXTFY1YjXT1bd")
+
+
+# api = tweepy.API(auth)
+
+# try:
+#     api.verify_credentials()
+#     print("everything works")
+# except:
+#     print("something went wrong")
