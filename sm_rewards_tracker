@@ -1,3 +1,6 @@
+## {name : [1 $QUAI likes+retweets, 1 $QUAI reply to @quainetwork (with max 2 per day), 5 $QUAI individual tweet about @quainetwork, 
+# retweets, likes, and replies to your individual tweet about $QUAI -> 5 $QUAI per 10 engagements]}
+
 import tweepy
 
 # use this client for read only processes, authentication was not working but appears unnecessary
@@ -9,42 +12,34 @@ sm_rewards = {}
 # search recent tweets from quainetwork, minus retweets
 query = 'from:quainetwork -is:retweet'
 tweets = client.search_recent_tweets(query=query, max_results=100)
+
 tweet_count = 0
 
 #iterate through tweet objects to collect retweeters, likers, and replies and assign user's their respective rewards
 for tweet in tweets.data:
     tweet_count += 1
-    retweeters = client.get_retweeters(tweet.id)
+    likers_list = []
+    retweeters_list = []
+    likers_retweeters = []
     likers = client.get_liking_users(tweet.id)
-    # print('----------------------')
-    # print('tweet text: ' + tweet.text)
+    retweeters = client.get_retweeters(tweet.id)
+    # pull username into liker list from likers data
     for liker in likers.data:
-        if liker.username in sm_rewards:
-            sm_rewards[liker.username][0] = sm_rewards[liker.username][0] + 1
-        else:
-            sm_rewards[liker.username] = [1, 0, 0]
-            #print('Added ' + liker.username)
-        # print('Liker name: ' + liker.username)
-        # print('Total Likes: ' + str(sm_rewards[liker.username][0]))
-        # print('Total Retweets: ' + str(sm_rewards[liker.username][1]))
-        # print("-- + --")
+        likers_list.append(liker.username)
+    # pull username into retweeter list from retweeters data
     for retweeter in retweeters.data:
-        if retweeter.username in sm_rewards:
-            sm_rewards[retweeter.username][1] = sm_rewards[retweeter.username][1] + 1
+        retweeters_list.append(retweeter.username)
+    # create new list of users who both liked and retweeted
+    likers_retweeters = [user for user in likers_list if user in retweeters_list]
+    for user in likers_retweeters:
+        if user in sm_rewards:
+            sm_rewards[user][0] = sm_rewards[user][0] + 1
         else:
-            sm_rewards[retweeter.username] = [0, 1, 0]
-            #print('Added ' + retweeter.username)
-        # print('Retweeter name: ' + retweeter.username)
-        # print('Total Likes: ' + str(sm_rewards[retweeter.username][0]))
-        # print('Total Retweets: ' + str(sm_rewards[retweeter.username][1]))
-        # print("-- + --")
-count = 0
-for user in sm_rewards:
-    count += 1
-    total_rewards = sm_rewards[user][0] + sm_rewards[user][1] + sm_rewards[user][2]
-    print(user + "'s Total Likes: " + str(sm_rewards[user][0]))
-    print(user + "'s Total Retweets: " + str(sm_rewards[user][1]))
-    print(user + "'s Total Rewards: " + str(total_rewards))
+            sm_rewards[user] = [1, 0, 0, 0]
 
-print("Total Tweets: " + str(tweet_count))
-print("Total Users: " + str(count))
+# Check reward count for each user and total recent tweet count
+for user in sm_rewards:
+    total_rewards = sm_rewards[user][0] + sm_rewards[user][1] + sm_rewards[user][2] + sm_rewards[user][3]
+    print('Username: ' + user + ' Total Rewards: ' + str(total_rewards))
+
+print('Total Tweets: ' + str(tweet_count))
