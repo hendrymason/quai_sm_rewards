@@ -10,15 +10,6 @@ import csv
 #   {name : [1 $QUAI likes+retweets, 1 $QUAI reply to @quainetwork (with max 2 per day), 5 $QUAI individual tweet about @quainetwork, 
 #   retweets, likes, and replies to your individual tweet about $QUAI -> 5 $QUAI per 10 engagements]}
 
-### TO DO:
-#       - verify date formatting is working
-#       - create a max out rate handler to alternate the bearer tokens and then wait 15 minutes upon rate-timing error 
-#       - reward a user based on their number of engagements
-#       - find a way around the reply/mention reward's intensive request process
-#       - output the user's data into a csv file
-#       - take reply_mentions_tracker into seperate file and allow user's data to work as input to limit requests
-#           - think about storing both dictionaries in a csv, possibly two seperate csvs?
-
 # CONST
 quai_id = 1306071657174441985
 quai_username = 'quainetwork'
