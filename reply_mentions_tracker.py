@@ -30,9 +30,9 @@ with open('input.csv') as c:
     # print(sm_rewards)
 
 # use to count replies per day when iterating through users tweets - "per day math"
-first_tweet = date(2021, 11, 20)
-today_date= date.today()
-days = [first_tweet + timedelta(days=i) for i in range((today_date - first_tweet).days + 1)]
+# first_tweet = date(2021, 11, 20)
+# today_date= date.today()
+# days = [first_tweet + timedelta(days=i) for i in range((today_date - first_tweet).days + 1)]
 #format according to twitter api
 first_tweet_date = first_tweet = '2021-11-20T00:00:00Z'
 today = datetime.now().isoformat()
@@ -68,6 +68,7 @@ for currentUser in sm_rewards:
             for tweet in reply_tweets:
                         if tweet.in_reply_to_user_id == quai_id:
                             reply_count += 1
+            
             # for day in days:
             #     replies_today = 0
             #     if replies_today == 2:
@@ -82,9 +83,8 @@ for currentUser in sm_rewards:
             sm_rewards[currentUser].append(reply_count)
             #reward users for specific mentions
             sm_rewards[currentUser].append(mention_count * 5)
-            #increment calculated users
-            user_count += 1
 
+date_outputted = date.today()
 field_names = ['Username','Total Rewards']
 with open('output.csv', 'w') as f:
     writer = csv.DictWriter(f, fieldnames=field_names)
@@ -98,4 +98,6 @@ with open('output.csv', 'w') as f:
     for user in sm_rewards.keys():
         total_rewards = sm_rewards[user][1] + sm_rewards[user][2] + sm_rewards[user][3]
         f.write("%s: %s\n" % (user, total_rewards))
+    f.write('\n')
+    f.write('Last Updated: '+ str(date_outputted))
 print('end script')
