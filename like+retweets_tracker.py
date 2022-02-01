@@ -1,4 +1,5 @@
 from ast import operator
+from re import T
 from typing import Iterable
 import tweepy
 from datetime import *
@@ -45,6 +46,7 @@ with open('tweets.csv') as twts:
         if not_empty:
             twt_array = line.strip().split(',')
             tweets_tracked[twt_array[0]] = datetime(twt_array[1])
+twts.close()
 
 #create monitor for tracking tweets and date of last tweet used
 monitor = tweets_monitor()
@@ -132,8 +134,8 @@ with open('input.csv', 'w') as f:
         f.write("%s,%s,%s\n" % (user, sm_rewards[user][0], sm_rewards[user][1]))
 # EXPORT TWEET DICT FOR FUTURE USE:
 tweet_field_names = ['created_at','tweet_id']
-with open('output_tweets.csv','w') as t:
+with open('tweets.csv','w') as t:
     tWriter = csv.DictWriter(t, fieldnames =tweet_field_names)
     for twtID in tweets_tracked.keys():
-        f.write("%s,%s\n" % (twtID, tweets_tracked[twtID]))
+        t.write("%s,%s\n" % (twtID, tweets_tracked[twtID]))
 print('end script')
