@@ -2,6 +2,7 @@ from ast import operator
 from re import T
 from typing import Iterable
 from xmlrpc.client import Boolean
+from numpy import _2Tuple
 import tweepy
 from datetime import *
 import csv
@@ -15,12 +16,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 #   {name : [1 $QUAI likes+retweets, 1 $QUAI reply to @quainetwork (with max 2 per day), 5 $QUAI individual tweet about @quainetwork, 
 #   retweets, likes, and replies to your individual tweet about $QUAI -> 5 $QUAI per 10 engagements]}
 
-# Gsheets
-#gc = gspread.service_account(filename='service-key.json')
-#sm_sheet = gc.open_by_key('1pPKG2PwrCr1dlZIvGZB8TQZ1_f0Pey-pgEZ1lvDbsbw')
-#output_sheet = sm_sheet.add_worksheet(title="Rewards Bot Tracked Data", rows=2000, cols=10) 
-# columns: 1. discord name, 2. twitter name, 3. youtube name, 4. like+retweet points, 5. reply points, 6. mention points, 
-#           7. YT subscriber points, 8. YT comment points, 9. multiplier, 10.aggregate total
+
 
 # CONST
 quai_id = 1306071657174441985
@@ -28,6 +24,12 @@ quai_username = 'quainetwork'
 first_bearer = "AAAAAAAAAAAAAAAAAAAAAEHkXwEAAAAAFgCxzDEOf484cKicUHiV3DO6qcU%3DodAKdbVDHoucR6dlOzPbB719XrDMisbZAWLufgqORgLCLgKUtO"
 second_bearer = "AAAAAAAAAAAAAAAAAAAAANBOYAEAAAAAlLMei9GmJpSazEtiXx6IWZXEbhs%3DYfsE6mbEa2mLrtZKJhjvjzr4gWZ466w1doYhiWGHlwbDyJzTwx"
 
+# Gsheets
+gc = gspread.service_account(filename='service-key.json')
+sm_sheet = gc.open_by_key('1pPKG2PwrCr1dlZIvGZB8TQZ1_f0Pey-pgEZ1lvDbsbw')
+ 
+# columns: 1. discord name, 2. twitter name, 3. youtube name, 4. like+retweet points, 5. reply points, 6. mention points, 
+#           7. YT subscriber points, 8. YT comment points, 9. multiplier, 10.aggregate total
 
 # dicts to track and store everything -> {username: [likes+retweets, replies, mentions, engagement rewards], ...}
 sm_rewards = {}
@@ -78,17 +80,8 @@ def sort_List(list_to_sort):
     return list_to_sort
 
 
+
 def read_tweet_data(_monitor):
-    print("read_tweet_data function - reading user reward data")
-    with open("like_retweet_rewards.csv") as lrr:
-        empty_result = is_empty("like_retweet_rewards.csv")
-        if empty_result == "not empty":
-            for line in lrr:
-                line_array = line.strip().split(',')
-                if len(line_array) == 3:
-                    username_userID[line_array[1]] = line_array[0]
-                    sm_rewards[line_array[1]] = line_array[2]
-    print("read_tweet_data function - reading tweet data")
     with open('client_tweet_data.csv') as ctd:
         empty_result = is_empty('client_tweet_data.csv')
         if empty_result == "not empty":
@@ -100,13 +93,26 @@ def read_tweet_data(_monitor):
                     _monitor.last_tweet_id = line_array[1]
                     _monitor.db_last_tweet_id = line_array[1]
         print("read_tweet_data function - closed client data file. set last_tweet_id to " + str(_monitor.last_tweet_id))
+    if _monitor.completed_check == False:
+        print("read_tweet_data function - last check was not completed, reading user reward data")
+        with open("like_retweet_rewards.csv") as lrr:
+            empty_result = is_empty("like_retweet_rewards.csv")
+            if empty_result == "not empty":
+                line_index = 0
+                for line in lrr:
+                    line_array = line.strip().split(',')
+                    if line_index == 0:
+                        line_index += 1
+                        continue
+                    elif len(line_array) == 3:
+                        username_userID[line_array[1]] = line_array[0]
+                        sm_rewards[line_array[1]] = line_array[2]
+    print("read_tweet_data function - reading tweet data")
     # open tweet input csv and create a dictionary from the file data
     with open("tweetsDB.csv") as twts:
         print("read_tweet_data function - opened input data file")
         empty_result = is_empty("tweetsDB.csv")
-        line_count = 0
         for line in twts:
-            line_count += 1
             if empty_result == "not empty":
                 twt_array = line.strip().split(': ')
                 if twt_array[0] == "Valid Tweet Tracked":
@@ -117,18 +123,18 @@ def read_tweet_data(_monitor):
             _monitor.last_tweet_id = db_tweets_tracked[-1]
             print("read_tweet_data function - set last_tweet_id to " + str(_monitor.last_tweet_id))
 
-
 # function: output to rewards csv
 def output_rewards_data():
     # EXPORT OUTPUT: export to csv file to use in reply_mentions_tracker
-    field_names = ['username','user id', 'like+retweet rewards']
-    with open('like_retweet_rewards.csv', 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=field_names)
+    lrr_field_names = ['UserID','Username', 'Like+Retweet Rewards']
+    with open('like_retweet_rewards.csv', 'w') as lrr:
+        writer = csv.DictWriter(lrr, fieldnames=lrr_field_names)
+        writer.writeheader()
         for user in sm_rewards.keys():
-            f.write("%s,%s,%s\n" % (username_userID[user], user, sm_rewards[user]))
-        f.write("\n")
-        f.write('Last Update: '+ str(datetime.now()))
-
+            lrr.write("%s,%s,%s\n" % (username_userID[user], user, sm_rewards[user]))
+        lrr.write("\n")
+        lrr.write('Last Update: '+ str(datetime.now()))
+    lrr.close()
 
 # function: output to tweet csvs
 def output_tweet_data(_monitor, up_to_date):
@@ -239,7 +245,7 @@ def like_retweet_check(_client, _tweets, _monitor):
             all_tweets_tracked.append(tweet_id)
     sort_List(all_tweets_tracked)
     _monitor.last_tweet_id = all_tweets_tracked[0]
-    print("like+retweet_check - last_tweet_id: " + str(monitor.last_tweet_id))
+    print("like+retweet_check - last_tweet_id: " + str(_monitor.last_tweet_id))
 
 
 ## Main Bot Logic
@@ -354,12 +360,3 @@ except:
         output_tweet_data(monitor, False)
         
         print("EXCEPTION: end script - unsuccessful output: function error or the clients were rate limited")
-
-
-
-
-## NEW BUSINESS LOGIC FOR HANDLING GSHEET UPDATES:
-# - add gsheet api
-# - pull citizen's twitter username data from column in social media rewards gsheet, store as key-value pair (sm_rewards{})
-# - within the key-value pair, store the csv cell location of their rewards
-# - when iterating through the final dictionary, add the latest reward value to update
