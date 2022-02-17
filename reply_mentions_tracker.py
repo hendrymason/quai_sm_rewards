@@ -44,26 +44,31 @@ def is_empty(file):
 def read_tweet_data():
     # sorts through an input file and adds users to a dictionary with a value of an array containing the data in its row
     with open('like_retweet_rewards.csv') as lr:
+        line_counter = 0
         for line in lr:
-            user_array = line.strip().split(',')
-            if len(user_array) == 3 and user_array[1] not in team_usernames:
-                # set user id & rewards from like+retweets output
-                sm_rewards[user_array[1]] = [int(user_array[0]), int(user_array[2]), 0, 0, [], []] 
-                # ^sm_rewards[key: username] = value: [0: int(twitter user_id), 1: int(like+retweets rewards)]
+            if line_counter == 0:
+                line_counter += 1
+                continue
+            else:
+                user_array = line.strip().split(',')
+                if len(user_array) == 3 and user_array[1] not in team_usernames:
+                    # set user id & rewards from like+retweets output
+                    sm_rewards[user_array[1]] = [int(user_array[0]), int(user_array[2]), 0, 0, [], []] 
+                    # ^sm_rewards[key: username] = value: [0: int(twitter user_id), 1: int(like+retweets rewards)]
     lr.close()
     # end output: [0: int(user_id), 1: int(like+retweets rewards), 2: int(reply rewards), 3: int(mention rewards), 4: reply_array[], 5: mentions_array[]]
     # utilize reply/mention arrays [] as to accommodate for scale and ensure more accurate tracking overtime
-    print("------------------------------------------------")
-    print(" --- sm_rewards ---")
-    print(sm_rewards)
-    print("------------------------------------------------")
     with open('user_data_storage.csv') as ud:
         print("reading user data storage")
         empty_result = is_empty('user_data_storage.csv')
         if empty_result != True:
             print("user data storage has data")
+            line_index = 0
             for line in ud:
-                if "Last Updated" in line:
+                if line_index == 0:
+                    line_index += 1
+                    continue
+                elif "Last Updated" in line:
                     break
                 elif "User Data" in line:
                     user_data = line.strip().split(',')
@@ -189,25 +194,32 @@ def update_all_data():
 
 
 def output_data(dict_to_output):
-    with open('total_twitter_rewards.csv', 'w') as f:
+    ttr_field_names = ['Username', 'Total Rewards']
+    with open('total_twitter_rewards.csv', 'w') as ttr:
         print("outputting to total twitter rewards")
+        udsWriter = csv.DictWriter(ttr, fieldnames=ttr_field_names)
+        udsWriter.writeheader()
         for username in dict_to_output:
-            f.write("%s: %s\n" % (username, dict_to_output[username]))
-        f.write('\n')
-        f.write('Last Updated: '+ str(datetime.now()))
-    #uds_field_names = ['Username', 'Like+Retweet Rewards','Reply Rewards','Mention Rewards','Reply Tweets Array', 'Mentions Tweets Array']
+            ttr.write("%s: %s\n" % (username, dict_to_output[username]))
+        ttr.write('\n')
+        ttr.write('Last Updated: '+ str(datetime.now()))
+    ttr.close()
+    uds_field_names = ['Username', 'Like+Retweet Rewards','Reply Rewards','Mention Rewards']
     with open('user_data_storage.csv','w') as uds:
         print("outputting to user data storage")
+        udsWriter = csv.DictWriter(uds, fieldnames=uds_field_names)
+        udsWriter.writeheader()
         for user in twitter_data.keys():
             usr_val = twitter_data[user]
             uds.write("%s,%s,%s,%s,%s,%s\n" % ("User Data", user, usr_val[0], usr_val[1], usr_val[2], usr_val[3]))
             for twtID in usr_val[4]:
-                if type(usr_val[4]) == str:
+                if type(twtID) == str:
                     uds.write("%s: %s\n" % ("User Reply Tweet", twtID))
             for twtID in usr_val[5]:
-                if type(usr_val[4]) == str:
+                if type(twtID) == str:
                     uds.write("%s: %s\n" % ("User Mention Tweet", twtID))
         uds.write("Last Updated: " + str(datetime.now()))
+    uds.close()
 
 ## FIX: MAKE THIS FILE A FUNCTION TIE INTO LIKE+RETWEET TRACKER
 ## FIX(?): ADD WAIT FUNCTION TO HANDLE RATE REQUESTS WITHIN LIKE+RETWEET TRACKER
