@@ -4,17 +4,6 @@ import tweepy
 from datetime import *
 import csv
 import time
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
-# Gsheets
-#gc = gspread.service_account(filename='service-key.json')
-#sm_sheet = gc.open_by_key('1pPKG2PwrCr1dlZIvGZB8TQZ1_f0Pey-pgEZ1lvDbsbw')
-# columns: 1. discord name, 2. twitter name, 3. youtube name, 4. like+retweet points, 5. reply points, 6. mention points, 
-#           7. YT subscriber points, 8. YT comment points, 9. role, 10. role multiplier, 11. Total $QUAI Earned
-#output_sheet = sm_sheet.add_worksheet(title="Rewards Bot Tracked Data", rows=2000, cols=10)
-# columns: 1. Rank, 2. Role, 3. Total $QUAI Earned
-#leaderboard_sheet = sm_sheet.add_worksheet(title="Social Media Leaderboard", rows=100, cols=5) 
 
 
 # CONST
@@ -70,11 +59,8 @@ def read_tweet_data():
                 user_array = line.strip().split(',')
                 if len(user_array) == 3 and user_array[1] not in team_usernames:
                     # set user id & rewards from like+retweets output
-                    sm_rewards[user_array[1]] = [int(user_array[0]), int(user_array[2]), 0, 0] 
-                    #sm_rewards[user_array[1]] = [int(user_array[0]), int(user_array[2]), 0, 0, [], []] 
-                    # ^sm_rewards[key: username] = value: [0: int(twitter user_id), 1: int(like+retweets rewards)]
+                    sm_rewards[user_array[1]] = [int(user_array[0]), int(user_array[2]), 0, 0]
     lr.close()
-    # end output: [0: int(user_id), 1: int(like+retweets rewards), 2: int(reply rewards), 3: int(mention rewards), 4: reply_array[], 5: mentions_array[]]
     # utilize reply/mention arrays [] as to accommodate for scale and ensure more accurate tracking overtime
     with open('user_data_storage.csv') as ud:
         print("reading user data storage")
@@ -90,7 +76,6 @@ def read_tweet_data():
                     user_data = line.strip().split(',')
                     current_user = user_data[1]
                     twitter_data[current_user] = [user_data[2], user_data[3], user_data[4], user_data[5]]
-                    #twitter_data[current_user] = [user_data[2], user_data[3], user_data[4], user_data[5], [],[]]
                 elif "Last Updated" in line:
                     break
             print("successfully read user data storage")
@@ -149,10 +134,6 @@ def reply_mentions_check(_bearer_token):
                 sm_rewards[currentUser][2] = reply_count
                 #reward users for specific mentions
                 sm_rewards[currentUser][3] = mention_count * 5
-
-                #twitter_data[username] = 
-                #   [0:user_id, 1:like+retweets, 2:replies, 3:mentions, 4:reply array, 5:mention array]
-                #sm_rewards[username] = [0:user_id, 1:like+retweets]  
 
 
 def sort_rewards(dict_to_sort):
@@ -250,8 +231,6 @@ def reply_mentions_main(_bearer_token):
     output_data(updated_agg_rewards)
     print('successful output, end of script')
 
-## FIX: MAKE THIS FILE A FUNCTION TIE INTO LIKE+RETWEET TRACKER
-## FIX(?): ADD WAIT FUNCTION TO HANDLE RATE REQUESTS WITHIN LIKE+RETWEET TRACKER
 try:
     read_tweet_data()
     print("read tweet data")
