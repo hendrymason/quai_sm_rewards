@@ -21,8 +21,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 # CONST
 quai_id = 1306071657174441985
 quai_username = 'quainetwork'
-first_bearer = "AAAAAAAAAAAAAAAAAAAAAEHkXwEAAAAAFgCxzDEOf484cKicUHiV3DO6qcU%3DodAKdbVDHoucR6dlOzPbB719XrDMisbZAWLufgqORgLCLgKUtO"
-second_bearer = "AAAAAAAAAAAAAAAAAAAAANBOYAEAAAAAlLMei9GmJpSazEtiXx6IWZXEbhs%3DYfsE6mbEa2mLrtZKJhjvjzr4gWZ466w1doYhiWGHlwbDyJzTwx"
+first_bearer = ""
+second_bearer = ""
 
 # Gsheets
 gc = gspread.service_account(filename='service-key.json')
